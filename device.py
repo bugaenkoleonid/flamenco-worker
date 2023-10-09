@@ -1,36 +1,19 @@
 import bpy
-import os
 
-def enable_gpus(device_type):
-    preferences = bpy.context.preferences
-    preferences_cycles = preferences.addons["cycles"].preferences
+scene = bpy.context.scene
+scene.cycles.device = 'GPU'
 
-    #query the devices
+prefs = bpy.context.user_preferences
+cprefs = prefs.addons['cycles'].preferences
 
-    preferences_cycles.get_devices()
+# Attempt to set GPU device types if available
+for compute_device_type in ('CUDA', 'OPTIX', 'NONE'):
+    try:
+        cprefs.compute_device_type = compute_device_type
+        break
+    except TypeError:
+        pass
 
-    preferences_cycles_devices = preferences_cycles.devices
-
-    compatible_devices = 0
-
-    # Check for compatible device
-
-    for device in preferences_cycles_devices:
-        if device.type == device_type:
-            compatible_devices += 1
-
-    if compatible_devices == 0:
-        raise RuntimeError("Unsupported device type")
-
-    # Activate the device type
-
-    preferences_cycles.compute_device_type = device_type
-
-    for device in preferences_cycles_devices:
-        if device.type == device_type:
-            device.use = True
-            print("activated " + device_type + " for " + device.name)
-
-    bpy.ops.wm.save_userpref()
-
-enable_gpus(os.getenv('DEVICE_TYPE'))
+# Enable all CPU and GPU devices
+for device in cprefs.devices:
+    device.use = True
