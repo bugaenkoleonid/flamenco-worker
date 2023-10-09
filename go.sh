@@ -34,28 +34,27 @@ apt-get upgrade -y
 apt-get install -y  unzip git libgl1-mesa-dev libglu1-mesa libsm6 libxi6 libxext6 libxrender-dev libxkbcommon-x11-0 libxrender1 build-essential git subversion cmake libx11-dev libxxf86vm-dev libxcursor-dev libxi-dev libxrandr-dev libxinerama-dev libegl-dev libwayland-dev wayland-protocols libxkbcommon-dev libdbus-1-dev linux-libc-dev
 apt-get -y autoremove
 
-# Копирование файлов и директорий из предыдущего образа
-docker cp <container_id>:/usr/local/blender /usr/local/
-docker cp <container_id>:/app/tools/ffmpeg-linux-amd64 /usr/local/ffmpeg/ffmpeg
-docker cp <container_id>:/app/flamenco-worker /app/flamenco-worker
-docker cp <container_id>:/app/bootstrap.sh /app/
-docker cp <container_id>:/app/device.py /app/
 
-echo -e "manager_url: http://77.105.139.79:8080/\ntask_types: [blender, ffmpeg, file-management, misc]\nrestart_exit_code: 47" > flamenco-worker.yaml
+echo -e "manager_url: http://77.105.139.79:15000/\ntask_types: [blender, file-management, misc]\nrestart_exit_code: 47" > flamenco-worker.yaml
 
 
 # Задание переменных среды для путей
 export PATH=/usr/local/blender:$PATH
 export PATH=/usr/local/ffmpeg:$PATH
 
-# Установка прав на исполнение скриптов
-chmod +x /app/bootstrap.sh
-chmod +x /app/device.py
 
 # Установка рабочей директории
 cd /app
 
+mkdir ./temp_clone
+git clone https://github.com/bugaenkoleonid/flamenco-worker.git ./temp_clone
+mv ./temp_clone/* ./temp_clone/.git* ./
+
+# Установка прав на исполнение скриптов
+chmod +x /app/bootstrap.sh
+chmod +x /app/device.py
+
+
 # Запуск скрипта bootstrap.sh
 ./bootstrap.sh
 
-./flamenco-worker
